@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
@@ -34,23 +35,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
-        // Jika tidak ada header Authorization atau tidak dimulai dengan "Bearer ", lanjutkan ke filter berikutnya
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        // Ekstrak token dari header
         jwt = authHeader.substring(7);
         username = jwtService.extractUsername(jwt);
 
-        // Jika username ada dan belum ada user yang terautentikasi di session
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 
-            // Jika token valid
             if (jwtService.isTokenValid(jwt, userDetails)) {
-                // Buat token autentikasi dan set di Security Context
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -64,5 +60,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         filterChain.doFilter(request, response);
     }
-}
 
+    /**
+     * Menentukan apakah filter ini harus dijalankan atau tidak berdasarkan path request.
+     * Filter TIDAK akan dijalankan jika method ini mengembalikan true.
+     */
+    @Override
+    protected boolean shouldNotFilter(@NonNull HttpServletRequest request) throws ServletException {
+        String[] publicPaths = {"/api/v1/auth", "/api/v1/menu", "/api/v1/admin"};
+        String path = request.getServletPath();
+        return Arrays.stream(publicPaths).anyMatch(path::startsWith);
+    }
+}
