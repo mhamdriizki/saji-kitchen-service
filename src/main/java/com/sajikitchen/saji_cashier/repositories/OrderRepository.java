@@ -1,5 +1,6 @@
 package com.sajikitchen.saji_cashier.repositories;
 
+import com.sajikitchen.saji_cashier.dto.admin.BestSellerDto;
 import com.sajikitchen.saji_cashier.dto.admin.CashierSalesDto;
 import com.sajikitchen.saji_cashier.dto.admin.DailySalesDetailDto;
 import com.sajikitchen.saji_cashier.dto.admin.DailySalesDto;
@@ -47,4 +48,17 @@ public interface OrderRepository extends JpaRepository<Order, String> {
             "WHERE oi.order.paymentStatus = 'PAID' AND oi.order.orderDate >= :startDate AND oi.order.orderDate < :endDate " +
             "GROUP BY oi.productVariant.product.name, oi.productVariant.name, oi.topping.name")
     List<DailySalesDetailDto> findSalesDetailByDate(OffsetDateTime startDate, OffsetDateTime endDate);
+
+    // --- QUERY BARU UNTUK BEST SELLER ---
+    @Query("SELECT new com.sajikitchen.saji_cashier.dto.admin.BestSellerDto(" +
+            "CONCAT(pv.product.name, ' (', pv.name, ')', " +
+            "CASE WHEN t.name IS NOT NULL THEN CONCAT(' + ', t.name) ELSE '' END), " +
+            "SUM(oi.quantity)) " +
+            "FROM OrderItem oi " +
+            "JOIN oi.productVariant pv " +
+            "LEFT JOIN oi.topping t " +
+            "WHERE oi.order.paymentStatus = 'PAID' AND oi.order.orderDate >= :startDate " +
+            "GROUP BY pv.product.name, pv.name, t.name " +
+            "ORDER BY SUM(oi.quantity) DESC")
+    List<BestSellerDto> findBestSellers(OffsetDateTime startDate);
 }

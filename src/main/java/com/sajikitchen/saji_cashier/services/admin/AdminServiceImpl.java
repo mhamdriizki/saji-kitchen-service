@@ -49,11 +49,16 @@ public class AdminServiceImpl implements AdminService {
         // 3. Panggil query untuk chart penjualan per kasir
         List<CashierSalesDto> salesByCashier = orderRepository.findTotalSalesByCashier(last30Days);
 
+        // 4. Panggil Best sellers
+        List<BestSellerDto> bestSellers = orderRepository.findBestSellers(last30Days);
+
+
         // Gabungkan semua data ke dalam satu DTO
         return DashboardDataDto.builder()
                 .todayRevenue(todayRevenue)
                 .dailySales(dailySales)
                 .salesByCashier(salesByCashier)
+                .bestSellers(bestSellers)
                 .build();
     }
 
