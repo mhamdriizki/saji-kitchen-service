@@ -91,8 +91,8 @@ public class AdminController {
     }
 
     @GetMapping("/users")
-    public ResponseEntity<List<UserResponseDto>> getAllCashiers() {
-        return ResponseEntity.ok(adminService.findAllCashiers());
+    public ResponseEntity<List<UserResponseDto>> getAllUsers() {
+        return ResponseEntity.ok(adminService.findAllUsers());
     }
 
     @PostMapping("/users")
@@ -105,7 +105,18 @@ public class AdminController {
     public ResponseEntity<UserResponseDto> updateCashier(
             @PathVariable UUID userId,
             @RequestBody UpdateUserRequestDto request) {
-        UserResponseDto updatedCashier = adminService.updateCashier(userId, request);
+        UserResponseDto updatedCashier = adminService.updateUser(userId, request);
         return ResponseEntity.ok(updatedCashier);
+    }
+
+    @GetMapping("/roles")
+    public ResponseEntity<List<RoleResponseDto>> getAllRoles() {
+        return ResponseEntity.ok(adminService.findAllRoles());
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+        adminService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
     }
 }

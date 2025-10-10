@@ -38,7 +38,6 @@ public class OrderController {
     }
 
     @PutMapping("/{orderId}/payment-confirmation")
-    @PreAuthorize("hasAuthority('CASHIER')")
     public ResponseEntity<StandardApiResponse<OrderResponse>> confirmOrderPayment(@PathVariable String orderId) {
         // Panggil service untuk konfirmasi pembayaran
         OrderResponse orderResponse = orderService.confirmPayment(orderId);

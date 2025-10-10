@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -48,9 +50,13 @@ public class OrderServiceImpl implements OrderService {
                     return customerRepository.save(newCustomer);
                 });
 
-        // Ganti dengan logic untuk mengambil user yang sedang login
-        User cashier = userRepository.findByUsername("kasir01")
-                .orElseThrow(() -> new EntityNotFoundException("Cashier not found"));
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new IllegalStateException("User not authenticated");
+        }
+        String currentUsername = authentication.getName();
+        User cashier = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new EntityNotFoundException("Cashier not found with username: " + currentUsername));
 
         Order newOrder = new Order();
         newOrder.setOrderId(generateOrderId());
@@ -64,20 +70,16 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemRequest itemReq : request.getItems()) {
             ProductVariant variant = productVariantRepository.findById(itemReq.getVariantId())
                     .orElseThrow(() -> new EntityNotFoundException("Product Variant not found: " + itemReq.getVariantId()));
-
             BigDecimal itemSubTotal = variant.getPrice();
             Topping topping = null;
             BigDecimal toppingPrice = BigDecimal.ZERO;
-
             if (itemReq.getToppingId() != null) {
                 topping = toppingRepository.findById(itemReq.getToppingId())
                         .orElseThrow(() -> new EntityNotFoundException("Topping not found: " + itemReq.getToppingId()));
                 toppingPrice = topping.getPrice();
                 itemSubTotal = itemSubTotal.add(toppingPrice);
             }
-
             totalAmount = totalAmount.add(itemSubTotal.multiply(new BigDecimal(itemReq.getQuantity())));
-
             OrderItem orderItem = new OrderItem();
             orderItem.setOrder(newOrder);
             orderItem.setProductVariant(variant);
@@ -90,7 +92,6 @@ public class OrderServiceImpl implements OrderService {
 
         newOrder.setTotalAmount(totalAmount);
         newOrder.setOrderItems(orderItems);
-
         Order savedOrder = orderRepository.save(newOrder);
         return mapOrderToResponse(savedOrder);
     }

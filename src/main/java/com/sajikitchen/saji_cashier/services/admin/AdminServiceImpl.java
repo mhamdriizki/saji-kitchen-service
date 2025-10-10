@@ -162,8 +162,8 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
-    public List<UserResponseDto> findAllCashiers() {
-        return userRepository.findAllByRoleRoleName("CASHIER").stream()
+    public List<UserResponseDto> findAllUsers() {
+        return userRepository.findAll().stream()
                 .map(this::mapUserToResponseDto)
                 .collect(Collectors.toList());
     }
@@ -174,21 +174,22 @@ public class AdminServiceImpl implements AdminService {
             throw new IllegalStateException("Username already exists");
         }
 
-        Role cashierRole = roleRepository.findByRoleName("CASHIER")
-                .orElseThrow(() -> new EntityNotFoundException("Role 'CASHIER' not found"));
+        // Cari role berdasarkan ID dari request, bukan di-hardcode
+        Role userRole = roleRepository.findById(request.getRoleId())
+                .orElseThrow(() -> new EntityNotFoundException("Role not found"));
 
-        User newCashier = new User();
-        newCashier.setUsername(request.getUsername());
-        newCashier.setPassword(passwordEncoder.encode(request.getPassword())); // Enkripsi password!
-        newCashier.setRole(cashierRole);
-        newCashier.setActive(true);
+        User newUser = new User();
+        newUser.setUsername(request.getUsername());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setRole(userRole);
+        newUser.setActive(true);
 
-        User savedUser = userRepository.save(newCashier);
+        User savedUser = userRepository.save(newUser);
         return mapUserToResponseDto(savedUser);
     }
 
     @Override
-    public UserResponseDto updateCashier(UUID userId, UpdateUserRequestDto request) {
+    public UserResponseDto updateUser(UUID userId, UpdateUserRequestDto request) {
         User existingUser = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
 
@@ -196,8 +197,36 @@ public class AdminServiceImpl implements AdminService {
             existingUser.setActive(request.getIsActive());
         }
 
+        // Logika baru untuk mengubah role
+        if (request.getRoleId() != null) {
+            Role newRole = roleRepository.findById(request.getRoleId())
+                    .orElseThrow(() -> new EntityNotFoundException("Role not found with id: " + request.getRoleId()));
+            existingUser.setRole(newRole);
+        }
+
         User updatedUser = userRepository.save(existingUser);
         return mapUserToResponseDto(updatedUser);
+    }
+
+    // Method baru untuk mengambil semua roles
+    @Override
+    public List<RoleResponseDto> findAllRoles() {
+        return roleRepository.findAll().stream()
+                .map(role -> RoleResponseDto.builder()
+                        .roleId(role.getRoleId())
+                        .roleName(role.getRoleName())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteUser(UUID userId) {
+        if (!userRepository.existsById(userId)) {
+            throw new EntityNotFoundException("User not found with id: " + userId);
+        }
+
+        // Hapus user secara permanen dari database
+        userRepository.deleteById(userId);
     }
 
     private UserResponseDto mapUserToResponseDto(User user) {
