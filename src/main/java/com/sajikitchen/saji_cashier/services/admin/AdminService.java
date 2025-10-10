@@ -24,7 +24,11 @@ public interface AdminService {
     Topping createTopping(ToppingRequestDto request);
     Topping updateTopping(UUID toppingId, ToppingRequestDto request);
 
-    List<UserResponseDto> findAllCashiers();
+    List<UserResponseDto> findAllUsers();
     UserResponseDto createCashier(CreateUserRequestDto request);
-    UserResponseDto updateCashier(UUID userId, UpdateUserRequestDto request);
+    UserResponseDto updateUser(UUID userId, UpdateUserRequestDto request);
+
+    List<RoleResponseDto> findAllRoles();
+
+    void deleteUser(UUID userId);
 }

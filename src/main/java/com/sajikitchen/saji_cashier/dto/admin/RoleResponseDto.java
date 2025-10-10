@@ -1,11 +1,13 @@
 package com.sajikitchen.saji_cashier.dto.admin;
 
+import lombok.Builder;
 import lombok.Data;
 
 import java.util.UUID;
 
 @Data
-public class UpdateUserRequestDto {
-    private Boolean isActive;
+@Builder
+public class RoleResponseDto {
     private UUID roleId;
+    private String roleName;
 }
