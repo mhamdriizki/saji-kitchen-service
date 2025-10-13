@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -145,5 +146,13 @@ public class AdminController {
     public ResponseEntity<Void> deleteInventoryItem(@PathVariable UUID itemId) {
         adminService.deleteInventoryItem(itemId); // Anda perlu membuat method ini
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/dashboard/revenue-by-date")
+    public ResponseEntity<BigDecimal> getRevenueByDate(
+            @RequestParam(value = "date") String dateStr) {
+
+        BigDecimal revenue = adminService.getRevenueForDate(dateStr);
+        return ResponseEntity.ok(revenue);
     }
 }

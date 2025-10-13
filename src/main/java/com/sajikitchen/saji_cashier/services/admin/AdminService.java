@@ -5,6 +5,7 @@ import com.sajikitchen.saji_cashier.models.Product;
 import com.sajikitchen.saji_cashier.models.ProductVariant;
 import com.sajikitchen.saji_cashier.models.Topping;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,4 +36,6 @@ public interface AdminService {
     InventoryResponeDto createInventoryItem(InventoryRequestDto request);
     InventoryResponeDto updateInventoryItem(UUID itemId, InventoryRequestDto request);
     void deleteInventoryItem(UUID itemId);
+
+    BigDecimal getRevenueForDate(String date);
 }

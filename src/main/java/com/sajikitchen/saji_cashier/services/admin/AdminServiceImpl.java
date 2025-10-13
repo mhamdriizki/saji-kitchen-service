@@ -286,4 +286,22 @@ public class AdminServiceImpl implements AdminService {
                 .isActive(item.isActive())
                 .build();
     }
+
+    @Override
+    public BigDecimal getRevenueForDate(String date) {
+        LocalDate localDate;
+        try {
+            // Parsing tanggal dari string format "YYYY-MM-DD"
+            localDate = LocalDate.parse(date);
+        } catch (DateTimeParseException e) {
+            // Jika format tanggal salah, gunakan tanggal hari ini
+            localDate = LocalDate.now(jakartaZone);
+        }
+
+        OffsetDateTime startOfDay = localDate.atStartOfDay().atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
+        OffsetDateTime endOfDay = localDate.atTime(LocalTime.MAX).atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
+
+        // Menggunakan kembali query yang sudah ada untuk omzet harian
+        return orderRepository.findTodayRevenue(startOfDay, endOfDay);
+    }
 }
