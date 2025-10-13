@@ -14,5 +14,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String username);
 
     List<User> findAllByRoleRoleName(String roleName);
-}
 
+    /**
+     * Finds all users and sorts them first by role name in ascending order,
+     * and then by username in ascending order.
+     * @return A sorted list of users.
+     */
+    List<User> findAllByOrderByRoleRoleNameAscUsernameAsc();
+}

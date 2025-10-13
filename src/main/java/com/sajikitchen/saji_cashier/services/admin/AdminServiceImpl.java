@@ -164,7 +164,7 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public List<UserResponseDto> findAllUsers() {
-        return userRepository.findAll().stream()
+        return userRepository.findAllByOrderByRoleRoleNameAscUsernameAsc().stream()
                 .map(this::mapUserToResponseDto)
                 .collect(Collectors.toList());
     }
