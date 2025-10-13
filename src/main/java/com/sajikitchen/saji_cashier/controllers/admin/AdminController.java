@@ -1,13 +1,16 @@
 package com.sajikitchen.saji_cashier.controllers.admin;
 
 import com.sajikitchen.saji_cashier.dto.admin.*;
+import com.sajikitchen.saji_cashier.models.InventoryItem;
 import com.sajikitchen.saji_cashier.models.Product;
 import com.sajikitchen.saji_cashier.models.ProductVariant;
 import com.sajikitchen.saji_cashier.models.Topping;
 import com.sajikitchen.saji_cashier.services.admin.AdminService;
+import com.sajikitchen.saji_cashier.services.admin.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -19,6 +22,7 @@ import java.util.UUID;
 public class AdminController {
 
     private final AdminService adminService;
+    private final InventoryService inventoryService;
 
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardDataDto> getDashboardData() {
@@ -117,6 +121,29 @@ public class AdminController {
     @DeleteMapping("/users/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         adminService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/inventory") // <-- 3. TAMBAHKAN ENDPOINT GET INI
+    public ResponseEntity<List<InventoryResponeDto>> getAllInventoryItems() {
+        return ResponseEntity.ok(inventoryService.getAllInventoryItems());
+    }
+
+    @PostMapping("/inventory")
+    public ResponseEntity<InventoryResponeDto> createInventoryItem(@RequestBody InventoryRequestDto request) {
+        InventoryResponeDto newItem = adminService.createInventoryItem(request); // Anda perlu membuat method ini di service
+        return new ResponseEntity<>(newItem, HttpStatus.CREATED);
+    }
+
+    @PutMapping("/inventory/{itemId}")
+    public ResponseEntity<InventoryResponeDto> updateInventoryItem(@PathVariable UUID itemId, @RequestBody InventoryRequestDto request) {
+        InventoryResponeDto updatedItem = adminService.updateInventoryItem(itemId, request); // Anda perlu membuat method ini
+        return ResponseEntity.ok(updatedItem);
+    }
+
+    @DeleteMapping("/inventory/{itemId}")
+    public ResponseEntity<Void> deleteInventoryItem(@PathVariable UUID itemId) {
+        adminService.deleteInventoryItem(itemId); // Anda perlu membuat method ini
         return ResponseEntity.noContent().build();
     }
 }

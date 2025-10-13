@@ -1,0 +1,107 @@
+### =======================================
+### INVENTORY MANAGEMENT TESTS
+### =======================================
+
+### Prasyarat: Dapatkan UUID untuk "Sumpit" dari database Anda dan paste di bawah.
+@sumpitId = cafa3208-944b-4478-87d9-d60dbc8d3d16
+
+### =======================================
+### LOGIN (Dibutuhkan untuk semua request)
+### =======================================
+
+### 1. Login as ADMIN
+# @name loginAdmin
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "ADMIN01",
+  "password": "Langit1105"
+}
+
+### Tangkap token Admin
+@adminAuthToken = {{loginAdmin.response.body.token}}
+
+
+### 2. Login as CASHIER
+# @name loginCashier
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "CFDSENAYAN",
+  "password": "Langit1105"
+}
+
+### Tangkap token Kasir
+@cashierAuthToken = {{loginCashier.response.body.token}}
+
+
+### =======================================
+### ADMIN: CRUD Operations
+### =======================================
+
+### 3. GET All Inventory Items (as Admin)
+# Admin bisa melihat semua item inventaris
+# @name adminGetAllInventory
+GET http://localhost:8080/api/v1/admin/inventory
+Authorization: Bearer {{adminAuthToken}}
+
+### 4. CREATE a New Inventory Item
+# Admin menambahkan item baru
+# @name createInventoryItem
+POST http://localhost:8080/api/v1/admin/inventory
+Authorization: Bearer {{adminAuthToken}}
+Content-Type: application/json
+{
+  "name": "Saus Sachets`",
+  "quantity": 500,
+  "threshold": 100,
+  "isActive": true
+}
+
+### Tangkap ID item baru
+@newItemId = {{createInventoryItem.response.body.itemId}}
+
+### 5. UPDATE an Inventory Item
+# Admin mengubah stok dan ambang batas item yang baru dibuat
+# @name updateInventoryItem
+PUT http://localhost:8080/api/v1/admin/inventory/{{newItemId}}
+Authorization: Bearer {{adminAuthToken}}
+Content-Type: application/json
+
+{
+  "name": "Saus Sachet Pedas",
+  "quantity": 450,
+  "threshold": 50,
+  "isActive": true
+}
+
+### 6. DELETE (Soft Delete) an Inventory Item
+# Admin menonaktifkan item yang baru dibuat
+# @name deleteInventoryItem
+DELETE http://localhost:8080/api/v1/admin/inventory/{{newItemId}}
+Authorization: Bearer {{adminAuthToken}}
+
+
+### =======================================
+### CASHIER: View and Usage Operations
+### =======================================
+
+### 7. GET All Inventory Items (as Cashier)
+# Kasir juga bisa melihat semua item inventaris
+# @name cashierGetAllInventory
+GET http://localhost:8080/api/v1/inventory
+Authorization: Bearer {{cashierAuthToken}}
+
+### 8. DECREASE Stock Manually (as Cashier)
+# Kasir menggunakan 1 Sumpit.
+# Pastikan Anda sudah mengisi variabel @sumpitId di bagian atas file ini!
+# @name useInventoryItem
+PUT http://localhost:8080/api/v1/inventory/usage
+Authorization: Bearer {{cashierAuthToken}}
+Content-Type: application/json
+{
+  "itemId": "{{sumpitId}}",
+  "amount": 1
+}

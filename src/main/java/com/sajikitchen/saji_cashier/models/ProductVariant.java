@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -37,4 +38,7 @@ public class ProductVariant {
     protected void onCreate() {
         createdAt = OffsetDateTime.now();
     }
+
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<VariantInventoryMapping> inventoryMappings;
 }

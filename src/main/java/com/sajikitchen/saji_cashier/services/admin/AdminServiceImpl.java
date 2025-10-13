@@ -30,6 +30,7 @@ public class AdminServiceImpl implements AdminService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InventoryItemRepository inventoryItemRepository;
 
     @Override
     public DashboardDataDto getDashboardData() {
@@ -235,6 +236,52 @@ public class AdminServiceImpl implements AdminService {
                 .username(user.getUsername())
                 .roleName(user.getRole().getRoleName())
                 .isActive(user.isActive())
+                .build();
+    }
+
+    @Override
+    public InventoryResponeDto createInventoryItem(InventoryRequestDto request) {
+        InventoryItem newItem = new InventoryItem();
+        newItem.setName(request.getName());
+        newItem.setQuantity(request.getQuantity() != null ? request.getQuantity() : 0);
+        newItem.setThreshold(request.getThreshold() != null ? request.getThreshold() : 10);
+        newItem.setActive(request.getIsActive() != null ? request.getIsActive() : true);
+
+        InventoryItem savedItem = inventoryItemRepository.save(newItem);
+        return mapToInventoryResponeDto(savedItem);
+    }
+
+    @Override
+    public InventoryResponeDto updateInventoryItem(UUID itemId, InventoryRequestDto request) {
+        InventoryItem existingItem = inventoryItemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory item not found: " + itemId));
+
+        if (request.getName() != null) existingItem.setName(request.getName());
+        if (request.getQuantity() != null) existingItem.setQuantity(request.getQuantity());
+        if (request.getThreshold() != null) existingItem.setThreshold(request.getThreshold());
+        if (request.getIsActive() != null) existingItem.setActive(request.getIsActive());
+
+        InventoryItem updatedItem = inventoryItemRepository.save(existingItem);
+        return mapToInventoryResponeDto(updatedItem);
+    }
+
+    @Override
+    public void deleteInventoryItem(UUID itemId) {
+        InventoryItem item = inventoryItemRepository.findById(itemId)
+                .orElseThrow(() -> new EntityNotFoundException("Inventory item not found: " + itemId));
+
+        item.setActive(false); // Soft delete
+        inventoryItemRepository.save(item);
+    }
+
+    // Helper method untuk mapping
+    private InventoryResponeDto mapToInventoryResponeDto(InventoryItem item) {
+        return InventoryResponeDto.builder()
+                .itemId(item.getItemId())
+                .name(item.getName())
+                .quantity(item.getQuantity())
+                .threshold(item.getThreshold())
+                .isActive(item.isActive())
                 .build();
     }
 }

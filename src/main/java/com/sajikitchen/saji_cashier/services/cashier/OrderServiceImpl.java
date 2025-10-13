@@ -6,6 +6,7 @@ import com.sajikitchen.saji_cashier.dto.cashier.OrderItemResponse;
 import com.sajikitchen.saji_cashier.dto.cashier.OrderResponse;
 import com.sajikitchen.saji_cashier.models.*;
 import com.sajikitchen.saji_cashier.repositories.*;
+import com.sajikitchen.saji_cashier.services.admin.InventoryService;
 import com.sajikitchen.saji_cashier.services.email.EmailService;
 import com.sajikitchen.saji_cashier.services.pdf.PdfGenerationService;
 import jakarta.persistence.EntityNotFoundException;
@@ -39,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
     private final PdfGenerationService pdfGenerationService;
     private final EmailService emailService;
+    private final InventoryService inventoryService;
 
     @Override
     @Transactional
@@ -70,6 +72,13 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemRequest itemReq : request.getItems()) {
             ProductVariant variant = productVariantRepository.findById(itemReq.getVariantId())
                     .orElseThrow(() -> new EntityNotFoundException("Product Variant not found: " + itemReq.getVariantId()));
+            // --- LOGIKA PENGURANGAN STOK OTOMATIS ---
+            for (VariantInventoryMapping mapping : variant.getInventoryMappings()) {
+                inventoryService.decreaseStock(
+                        mapping.getInventoryItem().getItemId(),
+                        mapping.getQuantityToDecrement() * itemReq.getQuantity()
+                );
+            }
             BigDecimal itemSubTotal = variant.getPrice();
             Topping topping = null;
             BigDecimal toppingPrice = BigDecimal.ZERO;

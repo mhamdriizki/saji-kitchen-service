@@ -1,5 +1,6 @@
 package com.sajikitchen.saji_cashier.services.email;
 
+import com.sajikitchen.saji_cashier.models.InventoryItem;
 import com.sajikitchen.saji_cashier.models.Order;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -56,6 +57,38 @@ public class EmailServiceImpl implements EmailService {
             // Lemparkan exception custom agar transaksi bisa di-rollback jika diperlukan,
             // atau tangani sesuai kebutuhan bisnis.
             throw new RuntimeException("Error sending email", e);
+        }
+    }
+
+    // --- METHOD BARU UNTUK NOTIFIKASI STOK ---
+    @Override
+    public void sendLowStockNotification(InventoryItem item) {
+        try {
+            MimeMessage mimeMessage = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
+
+            // Ganti dengan email owner di application.properties
+            helper.setTo("owner@sajikitchen.com");
+            helper.setFrom(mailFrom);
+            helper.setSubject("[PERINGATAN] Stok Rendah - " + item.getName());
+
+            String emailContent = String.format(
+                    "<h3>Peringatan Stok Rendah</h3>" +
+                            "<p>Stok untuk item <b>%s</b> telah mencapai atau di bawah ambang batas.</p>" +
+                            "<ul>" +
+                            "<li>Stok Saat Ini: <b>%d</b></li>" +
+                            "<li>Ambang Batas: <b>%d</b></li>" +
+                            "</ul>" +
+                            "<p>Harap segera lakukan pengadaan ulang.</p>",
+                    item.getName(), item.getQuantity(), item.getThreshold()
+            );
+            helper.setText(emailContent, true);
+
+            mailSender.send(mimeMessage);
+            log.info("Notifikasi stok rendah berhasil dikirim untuk item: {}", item.getName());
+
+        } catch (MessagingException e) {
+            log.error("Gagal mengirim notifikasi stok rendah untuk item {}: {}", item.getName(), e.getMessage());
         }
     }
 }

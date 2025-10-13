@@ -31,4 +31,8 @@ public interface AdminService {
     List<RoleResponseDto> findAllRoles();
 
     void deleteUser(UUID userId);
+
+    InventoryResponeDto createInventoryItem(InventoryRequestDto request);
+    InventoryResponeDto updateInventoryItem(UUID itemId, InventoryRequestDto request);
+    void deleteInventoryItem(UUID itemId);
 }
