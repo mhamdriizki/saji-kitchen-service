@@ -25,6 +25,9 @@ public class EmailServiceImpl implements EmailService {
     @Value("${spring.mail.username}")
     private String mailFrom;
 
+    @Value("${email.notif.inventory}")
+    private String[] ownerMail1;
+
     public EmailServiceImpl(JavaMailSender mailSender, TemplateEngine templateEngine) {
         this.mailSender = mailSender;
         this.templateEngine = templateEngine;
@@ -68,12 +71,12 @@ public class EmailServiceImpl implements EmailService {
             MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, false, "UTF-8");
 
             // Ganti dengan email owner di application.properties
-            helper.setTo("owner@sajikitchen.com");
+            helper.setTo(ownerMail1);
             helper.setFrom(mailFrom);
             helper.setSubject("[PERINGATAN] Stok Rendah - " + item.getName());
 
             String emailContent = String.format(
-                    "<h3>Peringatan Stok Rendah</h3>" +
+                    "<h1>Peringatan Stok Rendah</h1>" +
                             "<p>Stok untuk item <b>%s</b> telah mencapai atau di bawah ambang batas.</p>" +
                             "<ul>" +
                             "<li>Stok Saat Ini: <b>%d</b></li>" +
