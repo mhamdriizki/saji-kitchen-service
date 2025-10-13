@@ -267,11 +267,13 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public void deleteInventoryItem(UUID itemId) {
-        InventoryItem item = inventoryItemRepository.findById(itemId)
-                .orElseThrow(() -> new EntityNotFoundException("Inventory item not found: " + itemId));
+        // Cek dulu apakah item-nya ada untuk memberikan pesan error yang jelas
+        if (!inventoryItemRepository.existsById(itemId)) {
+            throw new EntityNotFoundException("Inventory item not found: " + itemId);
+        }
 
-        item.setActive(false); // Soft delete
-        inventoryItemRepository.save(item);
+        // Hapus baris secara permanen dari database
+        inventoryItemRepository.deleteById(itemId);
     }
 
     // Helper method untuk mapping

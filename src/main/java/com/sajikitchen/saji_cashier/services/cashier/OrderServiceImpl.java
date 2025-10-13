@@ -69,15 +69,24 @@ public class OrderServiceImpl implements OrderService {
         List<OrderItem> orderItems = new ArrayList<>();
         BigDecimal totalAmount = BigDecimal.ZERO;
 
+        log.info("Memulai proses order item untuk Order ID: {}", newOrder.getOrderId());
         for (OrderItemRequest itemReq : request.getItems()) {
-            ProductVariant variant = productVariantRepository.findById(itemReq.getVariantId())
+            log.info("Processing variantId: {}", itemReq.getVariantId());
+            ProductVariant variant = productVariantRepository.findByIdWithMappings(itemReq.getVariantId())
                     .orElseThrow(() -> new EntityNotFoundException("Product Variant not found: " + itemReq.getVariantId()));
-            // --- LOGIKA PENGURANGAN STOK OTOMATIS ---
-            for (VariantInventoryMapping mapping : variant.getInventoryMappings()) {
-                inventoryService.decreaseStock(
-                        mapping.getInventoryItem().getItemId(),
-                        mapping.getQuantityToDecrement() * itemReq.getQuantity()
-                );
+            List<VariantInventoryMapping> mappings = variant.getInventoryMappings();
+            if (mappings == null || mappings.isEmpty()) {
+                log.warn("Tidak ditemukan inventory mapping untuk variant: '{}' (ID: {})", variant.getName(), variant.getVariantId());
+            } else {
+                log.info("Ditemukan {} mapping untuk variant '{}'. Memulai proses pengurangan stok...", mappings.size(), variant.getName());
+                for (VariantInventoryMapping mapping : mappings) {
+                    int amountToDecrease = mapping.getQuantityToDecrement() * itemReq.getQuantity();
+                    log.info("Mengurangi stok untuk item '{}' sebanyak {}", mapping.getInventoryItem().getName(), amountToDecrease);
+                    inventoryService.decreaseStock(
+                            mapping.getInventoryItem().getItemId(),
+                            amountToDecrease
+                    );
+                }
             }
             BigDecimal itemSubTotal = variant.getPrice();
             Topping topping = null;

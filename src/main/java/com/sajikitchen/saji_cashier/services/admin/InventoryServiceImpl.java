@@ -46,7 +46,7 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     public List<InventoryResponeDto> getAllInventoryItems() {
-        return inventoryItemRepository.findAll().stream()
+        return inventoryItemRepository.findAllByOrderByIsActiveDescNameAsc().stream() // <-- GANTI DI SINI
                 .map(this::mapToInventoryResponeDto)
                 .collect(Collectors.toList());
     }
