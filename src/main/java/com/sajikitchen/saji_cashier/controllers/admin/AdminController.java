@@ -149,10 +149,10 @@ public class AdminController {
     }
 
     @GetMapping("/dashboard/revenue-by-date")
-    public ResponseEntity<BigDecimal> getRevenueByDate(
+    public ResponseEntity<DailySummaryDto> getRevenueByDate(
             @RequestParam(value = "date") String dateStr) {
 
-        BigDecimal revenue = adminService.getRevenueForDate(dateStr);
+        DailySummaryDto revenue = adminService.getRevenueForDate(dateStr);
         return ResponseEntity.ok(revenue);
     }
 }

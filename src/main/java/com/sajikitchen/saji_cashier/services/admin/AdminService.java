@@ -37,5 +37,5 @@ public interface AdminService {
     InventoryResponeDto updateInventoryItem(UUID itemId, InventoryRequestDto request);
     void deleteInventoryItem(UUID itemId);
 
-    BigDecimal getRevenueForDate(String date);
+    DailySummaryDto getRevenueForDate(String date);
 }
