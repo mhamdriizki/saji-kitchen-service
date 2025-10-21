@@ -9,7 +9,9 @@ import java.util.List;
 @Data
 @Builder
 public class DashboardDataDto {
-    private BigDecimal todayRevenue;
+    private BigDecimal todayGrossRevenue;
+    private BigDecimal todayExpenses;
+    private BigDecimal todayNetRevenue;
     private List<DailySalesDto> dailySales;
     private List<CashierSalesDto> salesByCashier;
     private List<BestSellerDto> bestSellers;

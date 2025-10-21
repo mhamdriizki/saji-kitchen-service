@@ -1,0 +1,97 @@
+### =======================================
+### EXPENSE MANAGEMENT TESTS
+### =======================================
+
+### =======================================
+### LOGIN (Dibutuhkan untuk semua request)
+### =======================================
+
+### 1. Login as CASHIER
+# @name loginCashier
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "CFDSENAYAN",
+  "password": "Langit1105"
+}
+
+### Tangkap token Kasir
+@cashierAuthToken = {{loginCashier.response.body.token}}
+
+---
+
+### 2. Login as ADMIN
+# @name loginAdmin
+POST http://localhost:8080/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "username": "admin01",
+  "password": "password_admin"
+}
+
+### Tangkap token Admin
+@adminAuthToken = {{loginAdmin.response.body.token}}
+
+
+### =======================================
+### CASHIER: CRUD Operations for Today's Expenses
+### =======================================
+
+### 3. CREATE a New Expense (as Cashier)
+# Kasir mencatat pengeluaran baru untuk hari ini.
+# @name createExpense
+POST http://localhost:8080/api/v1/expenses
+Authorization: Bearer {{cashierAuthToken}}
+Content-Type: application/json
+
+{
+  "amount": 5000,
+  "description": "Parkir BK"
+}
+
+### Tangkap ID pengeluaran baru
+@newExpenseId = {{createExpense.response.body.expenseId}}
+
+---
+
+### 4. GET Today's Expenses (as Cashier)
+# Kasir melihat semua pengeluaran yang telah ia catat hari ini.
+# @name getTodayExpenses
+GET http://localhost:8080/api/v1/expenses/today
+Authorization: Bearer {{cashierAuthToken}}
+
+---
+
+### 5. UPDATE an Expense (as Cashier)
+# Kasir mengubah detail pengeluaran yang baru saja dibuat.
+# @name updateExpense
+PUT http://localhost:8080/api/v1/expenses/{{newExpenseId}}
+Authorization: Bearer {{cashierAuthToken}}
+Content-Type: application/json
+
+{
+  "amount": 55000,
+  "description": "Beli Gas 3kg (harga naik)"
+}
+
+---
+
+### 6. DELETE an Expense (as Cashier)
+# Kasir menghapus catatan pengeluaran yang baru saja dibuat.
+# @name deleteExpense
+DELETE http://localhost:8080/api/v1/expenses/{{newExpenseId}}
+Authorization: Bearer {{cashierAuthToken}}
+
+
+### =======================================
+### ADMIN: Verify Dashboard Data
+### =======================================
+
+### 7. GET Admin Dashboard Data
+# Admin melihat dashboard. Periksa field "todayExpenses" dan "todayNetRevenue".
+# Jalankan request ini setelah Anda membuat beberapa pengeluaran (request #3).
+# @name getAdminDashboard
+GET http://localhost:8080/api/v1/admin/dashboard
+Authorization: Bearer {{adminAuthToken}}

@@ -31,6 +31,7 @@ public class AdminServiceImpl implements AdminService {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final InventoryItemRepository inventoryItemRepository;
+    private final ExpenseRepository expenseRepository;
 
     @Override
     public DashboardDataDto getDashboardData() {
@@ -41,8 +42,9 @@ public class AdminServiceImpl implements AdminService {
         OffsetDateTime last30Days = todayStart.minusDays(30);
 
         // 1. Panggil query untuk total omzet hari ini
-        BigDecimal todayRevenue = orderRepository.findTodayRevenue(todayStart, todayEnd);
-        System.out.println("--- today " + todayRevenue);
+        BigDecimal todayGrossRevenue = orderRepository.findRevenueByDate(todayStart, todayEnd);
+        BigDecimal todayExpenses = expenseRepository.sumExpensesByDate(todayStart, todayEnd);
+        BigDecimal todayNetRevenue = todayGrossRevenue.subtract(todayExpenses);
 
         // 2. Panggil query untuk chart penjualan harian
         List<DailySalesDto> dailySales = orderRepository.findTotalSalesPerDay(last30Days);
@@ -56,7 +58,9 @@ public class AdminServiceImpl implements AdminService {
 
         // Gabungkan semua data ke dalam satu DTO
         return DashboardDataDto.builder()
-                .todayRevenue(todayRevenue)
+                .todayGrossRevenue(todayGrossRevenue)
+                .todayExpenses(todayExpenses)
+                .todayNetRevenue(todayNetRevenue)
                 .dailySales(dailySales)
                 .salesByCashier(salesByCashier)
                 .bestSellers(bestSellers)
@@ -302,6 +306,6 @@ public class AdminServiceImpl implements AdminService {
         OffsetDateTime endOfDay = localDate.atTime(LocalTime.MAX).atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
 
         // Menggunakan kembali query yang sudah ada untuk omzet harian
-        return orderRepository.findTodayRevenue(startOfDay, endOfDay);
+        return orderRepository.findRevenueByDate(startOfDay, endOfDay);
     }
 }

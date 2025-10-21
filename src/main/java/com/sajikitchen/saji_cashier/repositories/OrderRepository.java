@@ -27,7 +27,7 @@ public interface OrderRepository extends JpaRepository<Order, String> {
     Optional<Order> findByIdWithDetails(String orderId);
 
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.paymentStatus = 'PAID' AND o.orderDate >= :startOfDay AND o.orderDate < :endOfDay")
-    BigDecimal findTodayRevenue(OffsetDateTime startOfDay, OffsetDateTime endOfDay);
+    BigDecimal findRevenueByDate(OffsetDateTime startOfDay, OffsetDateTime endOfDay);
 
     @Query("SELECT new com.sajikitchen.saji_cashier.dto.admin.DailySalesDto(CAST(o.orderDate AS java.time.LocalDate), SUM(o.totalAmount)) " +
             "FROM Order o WHERE o.paymentStatus = 'PAID' AND o.orderDate >= :startDate " +
