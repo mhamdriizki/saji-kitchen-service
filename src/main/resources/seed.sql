@@ -203,3 +203,14 @@ FROM
 WHERE
     pv.name LIKE '%Isi 6%'
     ON CONFLICT (variant_id, inventory_item_id) DO NOTHING;
+
+CREATE TABLE expenses (
+    expense_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    description TEXT,
+    expense_date TIMESTAMPTZ DEFAULT NOW(),
+    CONSTRAINT fk_user_expense
+        FOREIGN KEY(user_id)
+            REFERENCES users(user_id)
+);
