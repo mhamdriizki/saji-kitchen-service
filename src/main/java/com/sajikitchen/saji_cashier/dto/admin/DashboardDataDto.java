@@ -12,6 +12,7 @@ public class DashboardDataDto {
     private BigDecimal todayGrossRevenue;
     private BigDecimal todayExpenses;
     private BigDecimal todayNetRevenue;
+    private BigDecimal monthlyGrossRevenue;
     private List<DailySalesDto> dailySales;
     private List<CashierSalesDto> salesByCashier;
     private List<BestSellerDto> bestSellers;

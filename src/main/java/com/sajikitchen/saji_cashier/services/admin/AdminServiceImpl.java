@@ -35,16 +35,18 @@ public class AdminServiceImpl implements AdminService {
 
     @Override
     public DashboardDataDto getDashboardData() {
-        System.out.println("sampai sini");
         // Tentukan rentang waktu (misal: 30 hari terakhir untuk chart)
+        LocalDate today = LocalDate.now(jakartaZone);
         OffsetDateTime todayStart = LocalDate.now(jakartaZone).atStartOfDay().atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
         OffsetDateTime todayEnd = LocalDate.now(jakartaZone).atTime(LocalTime.MAX).atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
         OffsetDateTime last30Days = todayStart.minusDays(30);
+        OffsetDateTime startOfMonth = today.withDayOfMonth(1).atStartOfDay().atOffset(jakartaZone.getRules().getOffset(java.time.Instant.now()));
 
-        // 1. Panggil query untuk total omzet hari ini
+        // 1. Panggil query untuk total omzet hari ini dan bulan ini
         BigDecimal todayGrossRevenue = orderRepository.findRevenueByDate(todayStart, todayEnd);
         BigDecimal todayExpenses = expenseRepository.sumExpensesByDate(todayStart, todayEnd);
         BigDecimal todayNetRevenue = todayGrossRevenue.subtract(todayExpenses);
+        BigDecimal monthlyGrossRevenue = orderRepository.findRevenueByDate(startOfMonth, todayEnd);
 
         // 2. Panggil query untuk chart penjualan harian
         List<DailySalesDto> dailySales = orderRepository.findTotalSalesPerDay(last30Days);
@@ -61,6 +63,7 @@ public class AdminServiceImpl implements AdminService {
                 .todayGrossRevenue(todayGrossRevenue)
                 .todayExpenses(todayExpenses)
                 .todayNetRevenue(todayNetRevenue)
+                .monthlyGrossRevenue(monthlyGrossRevenue)
                 .dailySales(dailySales)
                 .salesByCashier(salesByCashier)
                 .bestSellers(bestSellers)
