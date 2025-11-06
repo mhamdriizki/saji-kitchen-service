@@ -3,6 +3,7 @@ package com.sajikitchen.saji_cashier.services.admin;
 import com.sajikitchen.saji_cashier.dto.admin.*;
 import com.sajikitchen.saji_cashier.models.*;
 import com.sajikitchen.saji_cashier.repositories.*;
+import com.sajikitchen.saji_cashier.services.admin.s3.S3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,7 @@ public class AdminServiceImpl implements AdminService {
     private final PasswordEncoder passwordEncoder;
     private final InventoryItemRepository inventoryItemRepository;
     private final ExpenseRepository expenseRepository;
+    private final S3Service s3Service; // Injeksi S3Service
 
     @Override
     public DashboardDataDto getDashboardData() {
@@ -103,7 +105,9 @@ public class AdminServiceImpl implements AdminService {
 
         existingProduct.setName(request.getName());
         existingProduct.setDescription(request.getDescription());
-        existingProduct.setImageUrl(request.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            existingProduct.setImageUrl(request.getImageUrl());
+        }
         if (request.getIsActive() != null) {
             existingProduct.setActive(request.getIsActive());
         }
@@ -115,8 +119,11 @@ public class AdminServiceImpl implements AdminService {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
 
-        product.setActive(false); // Soft delete
-        productRepository.save(product);
+        // 1. Hapus gambar dari S3 terlebih dahulu
+        s3Service.deleteFile(product.getImageUrl());
+
+        // 2. Hapus produk dari database (hard delete)
+        productRepository.deleteById(productId);
     }
 
     @Override
@@ -144,6 +151,11 @@ public class AdminServiceImpl implements AdminService {
     }
 
     @Override
+    public void deleteProductVariant(UUID variantId) { // Buat method ini jika belum ada
+        productVariantRepository.deleteById(variantId);
+    }
+
+    @Override
     public Topping createTopping(ToppingRequestDto request) {
         Topping newTopping = new Topping();
         newTopping.setName(request.getName());
@@ -161,12 +173,23 @@ public class AdminServiceImpl implements AdminService {
 
         existingTopping.setName(request.getName());
         existingTopping.setPrice(request.getPrice());
-        existingTopping.setImageUrl(request.getImageUrl());
+        if (request.getImageUrl() != null && !request.getImageUrl().isEmpty()) {
+            existingTopping.setImageUrl(request.getImageUrl());
+        }
         if (request.getIsActive() != null) {
             existingTopping.setActive(request.getIsActive());
         }
 
         return toppingRepository.save(existingTopping);
+    }
+
+    @Override
+    public void deleteTopping(UUID toppingId) { // Buat method ini jika belum ada
+        Topping topping = toppingRepository.findById(toppingId)
+                .orElseThrow(() -> new EntityNotFoundException("Topping not found"));
+
+        s3Service.deleteFile(topping.getImageUrl());
+        toppingRepository.deleteById(toppingId);
     }
 
     @Override

@@ -23,3 +23,9 @@ spring.mail.properties.mail.smtp.starttls.enable=
 # JWT Configuration
 application.security.jwt.secret-key=
 application.security.jwt.expiration=
+
+# AWS S3
+aws.accessKeyId=
+aws.secretKey=
+aws.region=
+aws.s3.bucketName=

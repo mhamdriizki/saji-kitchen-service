@@ -7,14 +7,23 @@ import com.sajikitchen.saji_cashier.models.ProductVariant;
 import com.sajikitchen.saji_cashier.models.Topping;
 import com.sajikitchen.saji_cashier.services.admin.AdminService;
 import com.sajikitchen.saji_cashier.services.admin.InventoryService;
+import com.sajikitchen.saji_cashier.services.admin.s3.S3Service;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -22,8 +31,18 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AdminController {
 
+    private static final Logger log = LoggerFactory.getLogger(AdminController.class);
+
     private final AdminService adminService;
     private final InventoryService inventoryService;
+    private final S3Service s3Service;
+
+    // == ENDPOINT BARU UNTUK UPLOAD FILE ==
+    @PostMapping(value = "/upload-image", consumes = "multipart/form-data")
+    public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
+        String imageUrl = s3Service.uploadFile(file);
+        return ResponseEntity.ok(Collections.singletonMap("imageUrl", imageUrl));
+    }
 
     @GetMapping("/dashboard")
     public ResponseEntity<DashboardDataDto> getDashboardData() {
@@ -44,14 +63,19 @@ public class AdminController {
         return ResponseEntity.ok(salesDetail);
     }
 
-    @PostMapping("/products")
+    // == MODIFIKASI ENDPOINT CREATE PRODUCT ==
+    @PostMapping(value = "/products", consumes = "application/json")
     public ResponseEntity<Product> createProduct(@RequestBody ProductRequestDto request) {
         Product newProduct = adminService.createProduct(request);
         return new ResponseEntity<>(newProduct, HttpStatus.CREATED);
     }
 
-    @PutMapping("/products/{productId}")
-    public ResponseEntity<Product> updateProduct(@PathVariable UUID productId, @RequestBody ProductRequestDto request) {
+    @PutMapping(value = "/products/{productId}", consumes = "application/json") // <-- UBAH KONSUMSI
+    public ResponseEntity<Product> updateProduct(
+            @PathVariable UUID productId,
+            @RequestBody ProductRequestDto request) { // <-- UBAH PARAMETER
+
+        // Service sudah siap menerima DTO, jadi tidak perlu ubah apa-apa
         Product updatedProduct = adminService.updateProduct(productId, request);
         return ResponseEntity.ok(updatedProduct);
     }
@@ -78,21 +102,34 @@ public class AdminController {
         return ResponseEntity.ok(updatedVariant);
     }
 
+    @DeleteMapping("/variants/{variantId}")
+    public ResponseEntity<Void> deleteProductVariant(@PathVariable UUID variantId) {
+        adminService.deleteProductVariant(variantId);
+        return ResponseEntity.noContent().build();
+    }
+
     // ==========================================================
     // ENDPOINT UNTUK MANAJEMEN TOPPING
     // ==========================================================
-    @PostMapping("/toppings")
-    public ResponseEntity<Topping> createTopping(@RequestBody ToppingRequestDto request) {
+    @PostMapping(value = "/toppings", consumes = "application/json") // <-- UBAH KONSUMSI
+    public ResponseEntity<Topping> createTopping(@RequestBody ToppingRequestDto request) { // <-- UBAH PARAMETER
         Topping newTopping = adminService.createTopping(request);
         return new ResponseEntity<>(newTopping, HttpStatus.CREATED);
     }
 
-    @PutMapping("/toppings/{toppingId}")
+    @PutMapping(value = "/toppings/{toppingId}", consumes = "application/json") // <-- UBAH KONSUMSI
     public ResponseEntity<Topping> updateTopping(
             @PathVariable UUID toppingId,
-            @RequestBody ToppingRequestDto request) {
+            @RequestBody ToppingRequestDto request) { // <-- UBAH PARAMETER
+
         Topping updatedTopping = adminService.updateTopping(toppingId, request);
         return ResponseEntity.ok(updatedTopping);
+    }
+
+    @DeleteMapping("/toppings/{toppingId}")
+    public ResponseEntity<Void> deleteTopping(@PathVariable UUID toppingId) {
+        adminService.deleteTopping(toppingId);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/users")

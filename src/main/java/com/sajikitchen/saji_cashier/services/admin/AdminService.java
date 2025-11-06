@@ -20,10 +20,12 @@ public interface AdminService {
     // --- Variant CRUD Methods ---
     ProductVariant createVariant(UUID productId, VariantRequestDto request);
     ProductVariant updateVariant(UUID variantId, VariantRequestDto request);
+    void deleteProductVariant(UUID variantId);
 
     // --- Topping CRUD Methods ---
     Topping createTopping(ToppingRequestDto request);
     Topping updateTopping(UUID toppingId, ToppingRequestDto request);
+    void deleteTopping(UUID toppingId);
 
     List<UserResponseDto> findAllUsers();
     UserResponseDto createCashier(CreateUserRequestDto request);
