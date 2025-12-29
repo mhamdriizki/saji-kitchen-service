@@ -6,8 +6,8 @@ import com.sajikitchen.saji_cashier.models.Product;
 import com.sajikitchen.saji_cashier.models.ProductVariant;
 import com.sajikitchen.saji_cashier.models.Topping;
 import com.sajikitchen.saji_cashier.services.admin.AdminService;
+import com.sajikitchen.saji_cashier.services.admin.ImageService;
 import com.sajikitchen.saji_cashier.services.admin.InventoryService;
-import com.sajikitchen.saji_cashier.services.admin.s3.S3Service;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,12 +35,12 @@ public class AdminController {
 
     private final AdminService adminService;
     private final InventoryService inventoryService;
-    private final S3Service s3Service;
+    private final ImageService imageService;
 
     // == ENDPOINT BARU UNTUK UPLOAD FILE ==
     @PostMapping(value = "/upload-image", consumes = "multipart/form-data")
     public ResponseEntity<Map<String, String>> uploadImage(@RequestParam("file") MultipartFile file) throws IOException {
-        String imageUrl = s3Service.uploadFile(file);
+        String imageUrl = imageService.uploadImage(file);
         return ResponseEntity.ok(Collections.singletonMap("imageUrl", imageUrl));
     }
 

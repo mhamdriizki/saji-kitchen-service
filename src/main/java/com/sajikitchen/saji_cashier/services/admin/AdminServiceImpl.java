@@ -3,7 +3,6 @@ package com.sajikitchen.saji_cashier.services.admin;
 import com.sajikitchen.saji_cashier.dto.admin.*;
 import com.sajikitchen.saji_cashier.models.*;
 import com.sajikitchen.saji_cashier.repositories.*;
-import com.sajikitchen.saji_cashier.services.admin.s3.S3Service;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -33,7 +32,6 @@ public class AdminServiceImpl implements AdminService {
     private final PasswordEncoder passwordEncoder;
     private final InventoryItemRepository inventoryItemRepository;
     private final ExpenseRepository expenseRepository;
-    private final S3Service s3Service; // Injeksi S3Service
 
     @Override
     public DashboardDataDto getDashboardData() {
@@ -118,11 +116,6 @@ public class AdminServiceImpl implements AdminService {
     public void deleteProduct(UUID productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new EntityNotFoundException("Product not found with id: " + productId));
-
-        // 1. Hapus gambar dari S3 terlebih dahulu
-        s3Service.deleteFile(product.getImageUrl());
-
-        // 2. Hapus produk dari database (hard delete)
         productRepository.deleteById(productId);
     }
 
@@ -187,8 +180,6 @@ public class AdminServiceImpl implements AdminService {
     public void deleteTopping(UUID toppingId) { // Buat method ini jika belum ada
         Topping topping = toppingRepository.findById(toppingId)
                 .orElseThrow(() -> new EntityNotFoundException("Topping not found"));
-
-        s3Service.deleteFile(topping.getImageUrl());
         toppingRepository.deleteById(toppingId);
     }
 
