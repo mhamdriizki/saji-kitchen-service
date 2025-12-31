@@ -52,7 +52,7 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://saji-kitchen-management.vercel.app"));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://saji-office.artela.id"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         // Menjadi lebih eksplisit tentang header yang diizinkan
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
