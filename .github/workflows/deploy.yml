@@ -1,0 +1,55 @@
+name: Deploy to VPS
+
+on:
+  push:
+    branches:
+      - master # Atau 'main', sesuaikan dengan nama branch utamamu
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Ambil kodingan dari GitHub
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 2. Siapkan Java 21 (PENTING: Harus sama dengan VPS)
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      # 3. Build JAR File (Sama kayak kamu jalanin di laptop)
+      - name: Build with Maven
+        run: ./mvnw clean package -DskipTests
+
+      # 4. Kirim file JAR ke VPS (SCP)
+      - name: Copy JAR via SCP
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          source: "target/*.jar"
+          target: "/opt/saji-cashier/temp_deploy"
+          strip_components: 1 # Biar folder 'target' nya gak ikut, isinya doang
+
+      # 5. Masuk ke VPS & Restart Service (SSH)
+      - name: Execute Remote Commands
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            # Pindahkan file dari temp ke folder asli (rename jadi app.jar)
+            mv /opt/saji-cashier/temp_deploy/*.jar /opt/saji-cashier/app.jar
+            
+            # Restart Service Systemd
+            systemctl restart saji-cashier
+            
+            # Bersih-bersih folder temp
+            rm -rf /opt/saji-cashier/temp_deploy
