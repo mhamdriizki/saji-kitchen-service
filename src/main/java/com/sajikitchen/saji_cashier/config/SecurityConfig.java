@@ -39,6 +39,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Menggunakan bean corsConfigurationSource secara eksplisit
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/health/**").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/api/v1/menu/**", "/api/v1/admin/**", "/api/v1/inventory/**", "/api/v1/expenses/**").permitAll()
                         .anyRequest().authenticated()
                 )
