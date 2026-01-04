@@ -7,6 +7,7 @@ import com.sajikitchen.saji_cashier.models.Product;
 import com.sajikitchen.saji_cashier.models.Topping;
 import com.sajikitchen.saji_cashier.repositories.ProductRepository;
 import com.sajikitchen.saji_cashier.repositories.ToppingRepository;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,6 +22,7 @@ public class MenuServiceImpl implements MenuService {
     private final ToppingRepository toppingRepository;
 
     @Override
+    @Transactional(readOnly = true)
     public List<ProductResponse> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(this::mapProductToResponse)
@@ -28,6 +30,7 @@ public class MenuServiceImpl implements MenuService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<ToppingResponse> getAllToppings() {
         return toppingRepository.findAll().stream()
                 .map(this::mapToppingToResponse)

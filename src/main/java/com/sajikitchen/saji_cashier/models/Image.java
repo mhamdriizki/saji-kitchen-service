@@ -24,7 +24,6 @@ public class Image {
 
     private String type; // misal: image/png, image/jpeg
 
-    @Lob
     @Column(name = "data", nullable = false)
     private byte[] data; // Data gambar tersimpan di sini
 }

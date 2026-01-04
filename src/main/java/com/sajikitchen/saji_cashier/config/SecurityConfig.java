@@ -26,7 +26,6 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
@@ -36,11 +35,18 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Menggunakan bean corsConfigurationSource secara eksplisit
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/health/**").permitAll()
-                        .requestMatchers("/api/v1/auth/**", "/api/v1/menu/**", "/api/v1/admin/**", "/api/v1/inventory/**", "/api/v1/expenses/**").permitAll()
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/menu/**",
+                                "/api/v1/admin/**",
+                                "/api/v1/inventory/**",
+                                "/api/v1/expenses/**",
+                                "/api/v1/images/**"
+                        ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -53,13 +59,12 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+        // Pastikan origin ini sesuai dengan Frontend kamu (Local & VPS)
         configuration.setAllowedOrigins(List.of("http://localhost:3000", "https://saji-office.artela.id"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        // Menjadi lebih eksplisit tentang header yang diizinkan
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
         configuration.setAllowCredentials(true);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        // Menerapkan konfigurasi ke semua path
         source.registerCorsConfiguration("/**", configuration);
         return source;
     }
