@@ -25,10 +25,7 @@ public class ImageService {
 
         Image savedImage = imageRepository.save(image);
 
-        return ServletUriComponentsBuilder.fromCurrentContextPath()
-                .path("/api/v1/images/")
-                .path(savedImage.getImageId().toString())
-                .toUriString();
+        return "/images/" + savedImage.getImageId().toString();
     }
 
     public Image getImage(UUID id) {
